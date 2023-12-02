@@ -2,12 +2,20 @@
   description = "AlexG's flake";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-23.05";
-    home-manager.url = "github:nix-community/home-manager/release-23.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+
+    home-manager = {
+        url = "github:nix-community/home-manager";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hyprland = {
+        url = "github:hyprwm/Hyprland";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs, home-manager, hyprland, ... }:
     let 
       lib = nixpkgs.lib;
       system = "x86_64-linux";
@@ -24,7 +32,11 @@
     homeConfigurations = {
       alexg = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-	modules = [ ./home.nix ];
+	    modules = [ 
+          ./home.nix
+          hyprland.homeManagerModules.default
+          {wayland.windowManager.hyprland.enble = true;}
+        ];
       };
     };
 
