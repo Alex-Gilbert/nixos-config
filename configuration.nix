@@ -9,34 +9,13 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
-  # Allow Unfree packages
-  nixpkgs.config.allowUnfree = true;
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "ag-nix"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  
-  # Enable OpenGL
-  hardware.opengl = {
-    enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
-  };
-
-  # NVidia
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false;
-    powerManagement.finegrained = false;
-
-    open = false;
-    nvidiaSettings = true;
-
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
+  #networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -59,117 +38,92 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  # Configure X11
- #services.xserver = {
-   #enable = true;
-   #layout = "us";
-   #xkbVariant = "";
-   #xkbOptions = "caps:swapescape";
+  # Enable the X11 windowing system.
+  services.xserver.enable = true;
 
-   #videoDrivers = ["nvidia"];
+  # Enable the KDE Plasma Desktop Environment.
+  services.xserver.displayManager.sddm.enable = true;
+  # services.xserver.desktopManager.plasma5.enable = true;
 
-  #displayManager = {
-  #  lightdm.enable = true;
-  #  defaultSession = "none+custom";
-  #};
-
-  #windowManager.session = [{
-  #    name = "custom";
-  #    start = ''
-  #       xsetroot -solid black
-
-  #   alacritty --option window.startup_mode=Fullscreen &
-  #   alacritty --option font.family="JetBrains Mono Nerd Font" &
-  #       exec alacritty
-  #    '';
-  #}];
- #};
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.alexg = {
-    isNormalUser = true;
-    description = "alexg";
-    extraGroups = [ "video" "audio" "input" "networkmanager" "wheel" ];
-    packages = with pkgs; [];
+  # Configure keymap in X11
+  services.xserver = {
+    layout = "us";
+    xkbVariant = "";
+    xkbOptions = "caps:swapescape";
   };
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-     neovim
-     lshw
-     lf
-     git
-     wget
-     gcc
-     binutils
-     glibc
-     gnumake
-     zig
-     rustc
-     cargo
-     rustfmt
-     rust-analyzer
-     clippy
-
-     waybar
-     dunst
-     libnotify
-     swww
-
-     kitty
-
-     rofi-wayland
-     firefox
-  ];
   
-  xdg = {
-    portal = {
-      enable = true;
-      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-    };
+  # Nvidia
+  services.xserver.videoDrivers = ["nvidia"];
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+
+    open = false;
+    nvidiaSettings = true;
+
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
+  # OpenGl
+  hardware.opengl = {
+    enable = true;
+    driSupport = true;
+    driSupport32Bit = true;
+  };
+
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+
+  # Enable sound with pipewire.
   sound.enable = true;
+  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    jack.enable = true;
   };
 
-  environment.sessionVariables = {
-    WLR_NO_HARDWARE_CURSORS = "1";
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.xserver.libinput.enable = true;
 
-    NIXOS_OZONE_WL = "1";
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.alexg = {
+    isNormalUser = true;
+    description = "Alex Gilbert";
+    extraGroups = [ "video" "audio" "input" "networkmanager" "wheel" ];
+    packages = with pkgs; [
+      firefox
+      kate
+    ];
   };
 
-  fonts.fonts = with pkgs; [
-    (nerdfonts.override { fonts = ["JetBrainsMono"];})
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  environment.systemPackages = with pkgs; [
+    neovim
+    vim
+
+    wget
+    git
+    gcc
+    binutils
+    glibc
+    gnumake
+    zig
+    rustc
+    cargo
+    rustfmt
+    rust-analyzer
+    clippy
+
+    lshw
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-  system.stateVersion = "23.05"; # Did you read the comment?
-
+  system.stateVersion = "23.11"; # Did you read the comment?
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 }
